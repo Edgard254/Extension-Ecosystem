@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Replit Extension Ecosystem</title>
+</head>
+<body>
+  <h1>Replit Extension Ecosystem</h1>
+  <div id="extensions"></div>
+  <textarea id="codeInput" placeholder="Enter your code"></textarea>
+  <button onclick="runExtension()">Run Extension</button>
+  <div id="result"></div>
+
+  <script src="https://cdn.socket.io/4.1.2/socket.io.min.js"></script>
+  <script>
+    const socket = io();
+
+    socket.on('extensions loaded', (extensionNames) => {
+      const extensionsDiv = document.getElementById('extensions');
+      extensionNames.forEach((name) => {
+        const extensionButton = document.createElement('button');
+        extensionButton.textContent = name;
+        extensionButton.onclick = () => selectExtension(name);
+        extensionsDiv.appendChild(extensionButton);
+      });
+    });
+
+    socket.emit('load extensions');
+
+    function selectExtension(extensionName) {
+      document.getElementById('result').textContent = '';
+      selectedExtension = extensionName;
+    }
+
+    function runExtension() {
+      const code = document.getElementById('codeInput').value;
+      if (selectedExtension && code.trim() !== '') {
+        socket.emit('run extension', selectedExtension, code);
+      }
+    }
+
+    socket.on('extension result', (result) => {
+      if (result.name === selectedExtension) {
+        document.getElementById('result').textContent = `Extension Result: ${result.result}`;
+      }
+    });
+  </script>
+</body>
+</html>
